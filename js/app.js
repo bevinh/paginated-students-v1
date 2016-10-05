@@ -70,10 +70,18 @@ function searchStudents(){
     hideAllStudents();
     var searchBox = document.getElementById("search-input");
     var searchValue = searchBox.value.toLowerCase();
+    
+    if (searchValue.length === 0) {        
+        deliverPaginatedResults(students, 1);
+        if (errorMessage) {
+            console.log(errorMessage);
+            parentUl.removeChild(errorMessage);
+        }
+    } else {    
     var details = []
     //Search the li item to find the record either by name or email address - make sure it is case insensitive
     //populate the details array to make sure we're just searching the right fields
-    for (var i = 1; i < students.length; i++) {
+    for (var i = 0; i < students.length; i++) {
         var detailsDiv = students[i].children[0];
         details.push(detailsDiv.children[1]);
         details.push(detailsDiv.children[2]);
@@ -85,26 +93,38 @@ function searchStudents(){
          var detailDiv = details[i].parentElement;
          var studentLi = detailDiv.parentElement;
          //Show the li 
-         showCurrentStudents.push(studentLi);
+         if (showCurrentStudents.indexOf(studentLi) > 0){
+         }else {
+             showCurrentStudents.push(studentLi);
+         }
+         
         } 
     }
-    //remove and refresh the pagination div with the new showStudents array
-
-         var pageNumbers = document.getElementsByClassName("pagination");
-          while (pageNumbers[0].hasChildNodes()) {
-              pageNumbers[0].removeChild(pageNumbers[0].lastChild);
-          }
-          pageNumbers[0].parentNode.removeChild(pageNumbers[0]);
-        //create the new variable
-        var studentNewPages = parseInt(showCurrentStudents.length / 10);
-        console.log(studentNewPages);
-        if (studentNewPages > 1) {
-            createPaginationDiv(studentNewPages);
+    if (showCurrentStudents.length === 0) {
+        var parentUl = document.getElementsByClassName("student-list")[0]; 
+        if (document.getElementById("errorID")){
+            parentUl.removeChild(errorID);
         }
-        showStudents(showCurrentStudents,0, 10);
-        paginationDiv.children[0].addEventListener("click", function (e){
-        deliverPaginatedResults(showCurrentStudents, e.target.id);
-        });
+        var errorMessage = document.createElement("LI");
+        errorMessage.id = "errorID";
+        errorMessage.innerHTML = "Sorry, no students containing " + searchValue + " were found.";
+        parentUl.appendChild(errorMessage);
+    }
+    //remove and refresh the pagination div with the new showStudents array
+        var pageNumbers = document.getElementsByClassName("pagination");
+        if (pageNumbers[0]) {
+              pageNumbers[0].parentNode.removeChild(pageNumbers[0]);
+            //create the new variable
+            var studentNewPages = Math.ceil(showCurrentStudents.length / 10);
+            if (studentNewPages > 1) {
+                createPaginationDiv(studentNewPages);
+            }
+            showStudents(showCurrentStudents,0, 10);
+            paginationDiv.children[0].addEventListener("click", function (e){
+            deliverPaginatedResults(showCurrentStudents, e.target.id);
+            });
+        }
+    }
 }
 
 //Create a function that adds the search input and button to the page
@@ -127,6 +147,7 @@ function addSearchDiv(){
     searchDiv.appendChild(searchInput);
     searchDiv.appendChild(searchButton);
     searchButton.addEventListener("click", searchStudents);
+    searchInput.addEventListener("keyup", searchStudents);
 }
 
 addSearchDiv();
