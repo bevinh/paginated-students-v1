@@ -1,5 +1,4 @@
-//Problem: Cannot search or page through students
-//Solution: Using progressive enhancement, add a search function and a pagination function
+function app(){
 
 //Gather the students array
 var students = document.getElementsByClassName("student-item");
@@ -100,8 +99,10 @@ function searchStudents(){
          
         } 
     }
+    //If no matches are found, include a message in the HTML to tell the user there are no matches.
     if (showCurrentStudents.length === 0) {
         var parentUl = document.getElementsByClassName("student-list")[0]; 
+        //if the element is already there, get rid of it so that messages don't duplicate
         if (document.getElementById("errorID")){
             parentUl.removeChild(errorID);
         }
@@ -147,16 +148,17 @@ function addSearchDiv(){
     searchDiv.appendChild(searchInput);
     searchDiv.appendChild(searchButton);
     searchButton.addEventListener("click", searchStudents);
+    //As the user types in the search box, dynamically filter the student listings as you type 
     searchInput.addEventListener("keyup", searchStudents);
 }
 
 addSearchDiv();
-
+}
+app();
 
 
     
 
 //EXCEEDS ITEMS
 //Include simple animations when transitioning between pages.
-//As the user types in the search box, dynamically filter the student listings as you type (using onchange)
-//If no matches are found, include a message in the HTML to tell the user there are no matches.
+
