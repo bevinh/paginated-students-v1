@@ -17,47 +17,51 @@ function hideAllStudents() {
     }
 }
 //Create a function that shows and hides students
-function showStudents(numToShowFrom, numToShowTo) {
+function showStudents(arrayOfStudents, numToShowFrom, numToShowTo) {
     hideAllStudents();
     //then show specific students
     for (var i = numToShowFrom; i < numToShowTo; i ++) {
-        if (students[i]){
-        students[i].style.display = 'block';
+        if (arrayOfStudents[i]){
+        arrayOfStudents[i].style.display = 'block';
         }
     }   
 }
 //Hide all records except for the first 10 onload
-showStudents(0,10);
+showStudents(students,0,10);
 
 //Create a pagination div
 var paginationDiv = document.createElement("DIV");
-var pageDiv = document.getElementsByClassName("page")[0];
-pageDiv.appendChild(paginationDiv);
-paginationDiv.className = "pagination";
-//Create the pagination ul
-var paginationUl = document.createElement("UL");
-paginationDiv.appendChild(paginationUl);
-//Create the correct number of li items
-for (var i = 1; i <= studentPages; i++) {
-    //Populate the li items with the page numbers
-    var el = document.createElement("LI");
-    paginationUl.appendChild(el);
-    el.innerHTML = "<a href=# id=" + i + ">" + i + "</a>";
+function createPaginationDiv(numOfPages){ 
+    var pageDiv = document.getElementsByClassName("page")[0];
+    pageDiv.appendChild(paginationDiv);
+    paginationDiv.className = "pagination";
+    //Create the pagination ul
+    var paginationUl = document.createElement("UL");
+    paginationDiv.appendChild(paginationUl);
+    //Create the correct number of li items
+    for (var i = 1; i <= numOfPages; i++) {
+        //Populate the li items with the page numbers
+        var el = document.createElement("LI");
+        paginationUl.appendChild(el);
+        el.innerHTML = "<a href=# id=" + i + ">" + i + "</a>";
+    }
 }
+//Create initial pagination div
+createPaginationDiv(studentPages);
 //Write a function that delivers 10 at a time based on the page numbers
-function deliverPaginatedResults(pageNum) {
+function deliverPaginatedResults(studentArray, pageNum) {
     var fromNumber = pageNum * 10 - 10 + 1;
     var toNumber = pageNum * 10;
     if (pageNum == 1) {
-        showStudents(0,10);
+        showStudents(studentArray,0,10);
     } else {
-        showStudents(fromNumber, toNumber);
+        showStudents(studentArray,fromNumber, toNumber);
     }
 }
 
 //Trigger the page switching function whenever we click a specific anchor with a specific id
 paginationDiv.children[0].addEventListener("click", function (e){
-        deliverPaginatedResults(e.target.id);
+        deliverPaginatedResults(students, e.target.id);
 });
 
 //Find the student's record containing the name
@@ -74,18 +78,33 @@ function searchStudents(){
         details.push(detailsDiv.children[1]);
         details.push(detailsDiv.children[2]);
     }
-    //loop over that array, and look for the search value
+    //loop over that array, and look for the search value and put it's parent element in a new array
+    var showCurrentStudents = [];
     for (var i = 0; i < details.length; i++) {
      if (details[i].textContent.includes(searchValue)) {
          var detailDiv = details[i].parentElement;
          var studentLi = detailDiv.parentElement;
          //Show the li 
-         studentLi.style.display = "block";
+         showCurrentStudents.push(studentLi);
         } 
     }
-   
-    
-    //if the number of li items returned is more than 10 results paginate them
+    //remove and refresh the pagination div with the new showStudents array
+
+         var pageNumbers = document.getElementsByClassName("pagination");
+          while (pageNumbers[0].hasChildNodes()) {
+              pageNumbers[0].removeChild(pageNumbers[0].lastChild);
+          }
+          pageNumbers[0].parentNode.removeChild(pageNumbers[0]);
+        //create the new variable
+        var studentNewPages = parseInt(showCurrentStudents.length / 10);
+        console.log(studentNewPages);
+        if (studentNewPages > 1) {
+            createPaginationDiv(studentNewPages);
+        }
+        showStudents(showCurrentStudents,0, 10);
+        paginationDiv.children[0].addEventListener("click", function (e){
+        deliverPaginatedResults(showCurrentStudents, e.target.id);
+        });
 }
 
 //Create a function that adds the search input and button to the page
