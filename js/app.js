@@ -15,11 +15,25 @@ function app() {
     
     //Create a function that hides all students
     function hideAllStudents() {
-        for (i = 0; i < students.length; i += 1) {
+        for (i = 0; i < students.length; i ++) {
             if (students[i]) {
                 students[i].style.display = 'none';
             }
         }
+    }
+    
+    //Create a function for the transition between pages
+    function removeFade(element) {
+        var opacity = 0.1;  
+        element.style.display = 'block';
+        var timer = setInterval(function () {
+            if (opacity >= 1) {
+                clearInterval(timer);
+            }
+            element.style.opacity = opacity;
+            element.style.filter = 'alpha(opacity=' + opacity * 100 + ")";
+            opacity += opacity * 0.1;
+        }, 10);
     }
 
     //Create a function that allows for the simple removal of elements
@@ -41,6 +55,8 @@ function app() {
         for (i = numToShowFrom; i < numToShowTo; i ++) {
             if (arrayOfStudents[i]){
                 arrayOfStudents[i].style.display = 'block';
+                //Include fade when transitioning between pages.
+                removeFade(arrayOfStudents[i]);
             }
         }   
     }
@@ -175,10 +191,3 @@ function app() {
     addSearchDiv();
 }
 app();
-
-
-    
-
-//EXCEEDS ITEMS
-//Include simple animations when transitioning between pages.
-
