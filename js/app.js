@@ -1,12 +1,14 @@
 function app(){
-
+//TODO: The search only works one time, populating it a second time for some reason doesn't reset the search value. No clue as to why.
+    
 //Gather the students array
 var students = document.getElementsByClassName("student-item");
 //Gather the number of student-details list items in the page
 var numOfStudents = students.length;
 //Calculate how many pages there are by figuring out the length and dividing it by 10
 var studentPages = Math.ceil(numOfStudents / 10);
-
+var studentListUL = document.getElementsByClassName("student-list");
+    
 //Create a function that hides all students
 function hideAllStudents() {
     for (var i = 0; i < students.length; i ++) {
@@ -15,7 +17,20 @@ function hideAllStudents() {
         }
     }
 }
-//Create a function that shows and hides students
+
+//Create a function that allows for the simple removal of elements
+Element.prototype.remove = function() {
+    this.parentElement.removeChild(this);
+}
+NodeList.prototype.remove = HTMLCollection.prototype.remove = function() {
+    for(var i = this.length - 1; i >= 0; i--) {
+        if(this[i] && this[i].parentElement) {
+            this[i].parentElement.removeChild(this[i]);
+        }
+    }
+}
+    
+//Create a function that shows and hides specific groups of students for the pagination
 function showStudents(arrayOfStudents, numToShowFrom, numToShowTo) {
     hideAllStudents();
     //then show specific students
@@ -25,18 +40,17 @@ function showStudents(arrayOfStudents, numToShowFrom, numToShowTo) {
         }
     }   
 }
-//Hide all records except for the first 10 onload
-showStudents(students,0,10);
-
+    var paginationDiv = document.createElement("DIV");
 //Create a pagination div
-var paginationDiv = document.createElement("DIV");
 function createPaginationDiv(numOfPages){ 
+
     var pageDiv = document.getElementsByClassName("page")[0];
     pageDiv.appendChild(paginationDiv);
     paginationDiv.className = "pagination";
     //Create the pagination ul
     var paginationUl = document.createElement("UL");
     paginationDiv.appendChild(paginationUl);
+    paginationUl.id = "paginationUL-id";
     //Create the correct number of li items
     for (var i = 1; i <= numOfPages; i++) {
         //Populate the li items with the page numbers
@@ -45,8 +59,7 @@ function createPaginationDiv(numOfPages){
         el.innerHTML = "<a href=# id=" + i + ">" + i + "</a>";
     }
 }
-//Create initial pagination div
-createPaginationDiv(studentPages);
+
 //Write a function that delivers 10 at a time based on the page numbers
 function deliverPaginatedResults(studentArray, pageNum) {
     var fromNumber = pageNum * 10 - 10 + 1;
@@ -58,30 +71,42 @@ function deliverPaginatedResults(studentArray, pageNum) {
     }
 }
 
+//Create initial pagination div
+createPaginationDiv(studentPages);
+//Hide all records except for the first 10 onload
+showStudents(students,0,10);
 //Trigger the page switching function whenever we click a specific anchor with a specific id
+    console.log(paginationDiv.children);
 paginationDiv.children[0].addEventListener("click", function (e){
         deliverPaginatedResults(students, e.target.id);
 });
+    
+
 
 //Find the student's record containing the name
 function searchStudents(){
     //Hide all of the li items in the student-list
     hideAllStudents();
     var searchBox = document.getElementById("search-input");
-    var searchValue = searchBox.value.toLowerCase();
-    
-    if (searchValue.length === 0) {        
-        deliverPaginatedResults(students, 1);
-        if (errorMessage) {
-            console.log(errorMessage);
-            parentUl.removeChild(errorMessage);
+    var searchValue;
+    searchValue = searchBox.value.toLowerCase();
+    var parentUl = document.getElementById("paginationUL-id");
+        if (parentUl) {
+            console.log(parentUl);
+            parentUl.remove();
+  
         }
-    } else {    
-    var details = []
+        //if the element is already there, get rid of it so that messages don't duplicate
+    var errorDiv = document.getElementById("errorID");
+        if (errorDiv){
+            errorDiv.remove();
+        }
+           
+      var details = []
     //Search the li item to find the record either by name or email address - make sure it is case insensitive
     //populate the details array to make sure we're just searching the right fields
     for (var i = 0; i < students.length; i++) {
-        var detailsDiv = students[i].children[0];
+         var detailsDiv = students[i].children[0];
         details.push(detailsDiv.children[1]);
         details.push(detailsDiv.children[2]);
     }
@@ -89,10 +114,10 @@ function searchStudents(){
     var showCurrentStudents = [];
     for (var i = 0; i < details.length; i++) {
      if (details[i].textContent.includes(searchValue)) {
-         var detailDiv = details[i].parentElement;
+           var detailDiv = details[i].parentElement;
          var studentLi = detailDiv.parentElement;
          //Show the li 
-         if (showCurrentStudents.indexOf(studentLi) > 0){
+         if (showCurrentStudents.indexOf(studentLi) >= 0){
          }else {
              showCurrentStudents.push(studentLi);
          }
@@ -101,32 +126,28 @@ function searchStudents(){
     }
     //If no matches are found, include a message in the HTML to tell the user there are no matches.
     if (showCurrentStudents.length === 0) {
-        var parentUl = document.getElementsByClassName("student-list")[0]; 
-        //if the element is already there, get rid of it so that messages don't duplicate
-        if (document.getElementById("errorID")){
-            parentUl.removeChild(errorID);
-        }
+         console.log(studentListUL);
         var errorMessage = document.createElement("LI");
         errorMessage.id = "errorID";
         errorMessage.innerHTML = "Sorry, no students containing " + searchValue + " were found.";
-        parentUl.appendChild(errorMessage);
+        studentListUL[0].appendChild(errorMessage);
     }
-    //remove and refresh the pagination div with the new showStudents array
-        var pageNumbers = document.getElementsByClassName("pagination");
-        if (pageNumbers[0]) {
-              pageNumbers[0].parentNode.removeChild(pageNumbers[0]);
+          
             //create the new variable
             var studentNewPages = Math.ceil(showCurrentStudents.length / 10);
             if (studentNewPages > 1) {
                 createPaginationDiv(studentNewPages);
             }
             showStudents(showCurrentStudents,0, 10);
-            paginationDiv.children[0].addEventListener("click", function (e){
-            deliverPaginatedResults(showCurrentStudents, e.target.id);
+            var paginationUL = document.getElementById("paginationUL-id");
+            if (paginationUL){
+             paginationUL.addEventListener("click", function (e){
+             deliverPaginatedResults(showCurrentStudents, e.target.id);
             });
-        }
+            }
+        
     }
-}
+
 
 //Create a function that adds the search input and button to the page
 function addSearchDiv(){
