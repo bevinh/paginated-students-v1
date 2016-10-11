@@ -81,7 +81,7 @@ function app() {
 
     //Write a function that delivers 10 at a time based on the page numbers
     function deliverPaginatedResults(studentArray, pageNum) {
-        var fromNumber = pageNum * 10 - 10 + 1;
+        var fromNumber = pageNum * 10 - 10;
         var toNumber = pageNum * 10;
         if (pageNum == 1) {
             showStudents(studentArray,0,10);
